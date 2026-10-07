@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static formatacao %}
+
+{% block title %}Análises{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h1 class="h3 mb-0">Análises e relatórios</h1>
+    <p class="text-muted mb-0">{{ periodo.descricao }}: {{ periodo.inicio|date:"d/m/Y" }} a {{ periodo.fim|date:"d/m/Y" }}
+      · comparado com {{ anterior.inicio|date:"d/m/Y" }} a {{ anterior.fim|date:"d/m/Y" }}</p>
+  </div>
+  <button type="button" class="btn btn-outline-secondary d-print-none" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir</button>
+</div>
+
+<form method="get" class="card shadow-sm mb-4 d-print-none">
+  <div class="card-body row g-2 align-items-end">
+    {% include "partials/_filtro_periodo.html" with filtro=filtro %}
+    <div class="col-auto"><button class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Aplicar</button></div>
+  </div>
+</form>
+
+<!-- Comparação com o período anterior -->
+<div class="row g-3 mb-4">
+  {% with c=comparacao.valor %}
+  <div class="col-12 col-md-4">{% include "dashboard/_comparacao.html" with titulo="Faturamento" atual=c.atual|moeda anterior=c.anterior|moeda variacao=c.variacao icone="cash-stack" %}</div>
+  {% endwith %}
+  {% with c=comparacao.quantidade %}
+  <div class="col-12 col-md-4">{% include "dashboard/_comparacao.html" with titulo="Quantidade de vendas" atual=c.atual anterior=c.anterior variacao=c.variacao icone="bag-check" %}</div>
+  {% endwith %}
+  {% with c=comparacao.ticket_medio %}
+  <div class="col-12 col-md-4">{% include "dashboard/_comparacao.html" with titulo="Ticket médio" atual=c.atual|moeda anterior=c.anterior|moeda variacao=c.variacao icone="receipt-cutoff" %}</div>
+  {% endwith %}
+</div>
+
+<!-- Vendas por vendedor -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold">Vendas por vendedor</div>
+      {% include "dashboard/_ranking.html" with ranking=vendedores %}
+    </div>
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Comparação entre vendedores</h2>
+      <div class="grafico"><canvas id="graficoVendedores"></canvas></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- Vendas por período -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-8">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Evolução das vendas (período atual x anterior)</h2>
+      <div class="grafico"><canvas id="graficoEvolucao"></canvas></div>
+    </div></div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold">Dias com maior volume de vendas</div>
+      {% if dias_top %}
+      <ul class="list-group list-group-flush">
+        {% for d in dias_top %}
+        <li class="list-group-item d-flex justify-content-between">
+          <span>{{ d.dia|date:"D, d/m/Y" }} <small class="text-muted">· {{ d.quantidade }} venda{{ d.quantidade|pluralize }}</small></span>
+          <strong class="text-nowrap">{{ d.valor|moeda }}</strong>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted p-3 mb-0">Nenhuma venda no período.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Produtos e formas de pagamento -->
+<div class="row g-3">
+  <div class="col-12 col-xl-6">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-semibold">Produtos mais vendidos</div>
+      {% include "dashboard/_tabela_produtos.html" with produtos=produtos %}
+    </div>
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6 card-title">Quantidade vendida por produto</h2>
+      <div class="grafico"><canvas id="graficoMaisVendidos"></canvas></div>
+    </div></div>
+  </div>
+  <div class="col-12 col-xl-6">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-semibold">Formas de pagamento</div>
+      {% include "dashboard/_tabela_formas.html" with formas=formas %}
+    </div>
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6 card-title">Participação por forma de pagamento</h2>
+      <div class="grafico"><canvas id="graficoFormaPagamento"></canvas></div>
+    </div></div>
+  </div>
+</div>
+
+{{ graficos|json_script:"dados-graficos" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'js/filtro_periodo.js' %}"></script>
+{% endblock %}

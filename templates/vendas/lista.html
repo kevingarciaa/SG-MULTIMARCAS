@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static formatacao %}
+
+{% block title %}{% if eh_gerente %}Vendas{% else %}Minhas vendas{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">{% if eh_gerente %}Vendas da loja{% else %}Minhas vendas{% endif %}</h1>
+  {% if perms.vendas.add_venda %}
+  <a href="{% url 'vendas:nova' %}" class="btn btn-success"><i class="bi bi-cart-plus me-1"></i>Nova venda</a>
+  {% endif %}
+</div>
+
+<form method="get" class="card shadow-sm mb-3">
+  <div class="card-body row g-2 align-items-end">
+    {% include "partials/_filtro_periodo.html" with filtro=filtro %}
+    {% if eh_gerente %}
+    <div class="col-12 col-sm-6 col-lg-3">
+      <label class="form-label small mb-1" for="vendedor">Vendedor</label>
+      <select name="vendedor" id="vendedor" class="form-select" onchange="this.form.requestSubmit()">
+        <option value="">Todos os vendedores</option>
+        {% for v in vendedores %}
+        <option value="{{ v.pk }}" {% if vendedor_id == v.pk|stringformat:"d" %}selected{% endif %}>{{ v|nome_usuario }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-12 col-sm-6 col-lg-3">
+      <label class="form-label small mb-1" for="busca">Cliente ou nº da venda</label>
+      <input type="search" id="busca" name="q" value="{{ request.GET.q }}" class="form-control">
+    </div>
+    <div class="col-auto"><button class="btn btn-outline-primary"><i class="bi bi-funnel me-1"></i>Filtrar</button></div>
+  </div>
+</form>
+
+<div class="row g-3 mb-3">
+  <div class="col-4"><div class="card shadow-sm h-100"><div class="card-body py-2">
+    <div class="small text-muted">Vendas{% if periodo %} ({{ periodo.descricao|lower }}){% endif %}</div>
+    <div class="fs-5 fw-bold">{{ totais.quantidade }}</div>
+  </div></div></div>
+  <div class="col-4"><div class="card shadow-sm h-100"><div class="card-body py-2">
+    <div class="small text-muted">Valor vendido</div>
+    <div class="fs-5 fw-bold">{{ totais.valor|moeda }}</div>
+  </div></div></div>
+  <div class="col-4"><div class="card shadow-sm h-100"><div class="card-body py-2">
+    <div class="small text-muted">Ticket médio</div>
+    <div class="fs-5 fw-bold">{{ totais.ticket_medio|moeda }}</div>
+  </div></div></div>
+</div>
+
+<div class="card shadow-sm">
+  {% if vendas %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Nº</th><th>Data</th><th>Cliente</th>
+          {% if eh_gerente %}<th>Vendedor</th>{% endif %}
+          <th class="d-none d-md-table-cell">Pagamento</th><th class="text-end">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for venda in vendas %}
+        <tr class="{% if venda.status == 'cancelada' %}text-muted{% endif %}">
+          <td><a href="{% url 'vendas:detalhe' venda.pk %}" class="fw-semibold text-decoration-none">#{{ venda.pk }}</a></td>
+          <td class="text-nowrap">{{ venda.data_venda|date:"d/m/Y H:i" }}</td>
+          <td>{{ venda.cliente.nome|default:"Consumidor" }}</td>
+          {% if eh_gerente %}<td>{{ venda.vendedor|nome_usuario }}</td>{% endif %}
+          <td class="d-none d-md-table-cell">{{ venda.get_forma_pagamento_display }}</td>
+          <td class="text-end text-nowrap fw-semibold">
+            {{ venda.valor_total|moeda }}
+            {% if venda.status == 'cancelada' %}<span class="badge text-bg-secondary">cancelada</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted p-3 mb-0">Nenhuma venda encontrada.</p>
+  {% endif %}
+</div>
+{% include "partials/_paginacao.html" %}
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/filtro_periodo.js' %}"></script>{% endblock %}

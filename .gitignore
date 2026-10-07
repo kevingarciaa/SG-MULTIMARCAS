@@ -1,0 +1,24 @@
+# Ambiente e segredos
+.venv/
+venv/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Banco local e arquivos gerados
+db.sqlite3
+staticfiles/
+media/
+
+# Editores / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Mantidos apenas localmente
+*/tests.py
+requirements.txt
+.env.example

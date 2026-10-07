@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Editar cliente{% else %}Cadastrar cliente{% endif %}{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">{% if object %}Editar cliente{% else %}Cadastrar cliente{% endif %}</h1>
+<div class="card shadow-sm" style="max-width: 900px;">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for erro in form.non_field_errors %}<div class="alert alert-danger">{{ erro }}</div>{% endfor %}
+      <div class="row g-3">
+        <div class="col-12 col-md-8">{% include "partials/_campo.html" with field=form.nome %}</div>
+        <div class="col-12 col-md-4">{% include "partials/_campo.html" with field=form.cpf %}</div>
+        <div class="col-12 col-md-4">{% include "partials/_campo.html" with field=form.telefone %}</div>
+        <div class="col-12 col-md-5">{% include "partials/_campo.html" with field=form.email %}</div>
+        <div class="col-12 col-md-3">{% include "partials/_campo.html" with field=form.data_nascimento %}</div>
+        <div class="col-12 col-md-6">{% include "partials/_campo.html" with field=form.endereco %}</div>
+        <div class="col-12 col-md-3">{% include "partials/_campo.html" with field=form.bairro %}</div>
+        <div class="col-12 col-md-3">{% include "partials/_campo.html" with field=form.cidade %}</div>
+        <div class="col-12">{% include "partials/_campo.html" with field=form.observacoes %}</div>
+        <div class="col-12">{% include "partials/_campo.html" with field=form.ativo %}</div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% if object %}{% url 'clientes:detalhe' object.pk %}{% else %}{% url 'clientes:lista' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

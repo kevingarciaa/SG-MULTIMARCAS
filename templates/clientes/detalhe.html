@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load formatacao %}
+
+{% block title %}{{ cliente.nome }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h1 class="h3 mb-0">{{ cliente.nome }} {% if not cliente.ativo %}<span class="badge text-bg-secondary fs-6">inativo</span>{% endif %}</h1>
+    <a href="{% url 'clientes:lista' %}" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Voltar para clientes</a>
+  </div>
+  <div class="d-flex gap-2">
+    {% if perms.vendas.add_venda and cliente.ativo %}
+    <a href="{% url 'vendas:nova' %}?cliente={{ cliente.pk }}" class="btn btn-success"><i class="bi bi-cart-plus me-1"></i>Nova venda</a>
+    {% endif %}
+    {% if perms.clientes.change_cliente %}
+    <a href="{% url 'clientes:editar' cliente.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Dados do cliente</h2>
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Telefone</dt><dd class="col-sm-8">{{ cliente.telefone_formatado }}</dd>
+        <dt class="col-sm-4">CPF</dt><dd class="col-sm-8">{{ cliente.cpf_formatado|default:"-" }}</dd>
+        <dt class="col-sm-4">E-mail</dt><dd class="col-sm-8">{{ cliente.email|default:"-" }}</dd>
+        <dt class="col-sm-4">Nascimento</dt><dd class="col-sm-8">{{ cliente.data_nascimento|date:"d/m/Y"|default:"-" }}</dd>
+        <dt class="col-sm-4">Endereço</dt>
+        <dd class="col-sm-8">{{ cliente.endereco|default:"-" }}{% if cliente.bairro %}, {{ cliente.bairro }}{% endif %}{% if cliente.cidade %} - {{ cliente.cidade }}{% endif %}</dd>
+        {% if cliente.observacoes %}<dt class="col-sm-4">Observações</dt><dd class="col-sm-8">{{ cliente.observacoes|linebreaksbr }}</dd>{% endif %}
+      </dl>
+    </div></div>
+  </div>
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Situação financeira</h2>
+      {% with situacao=cliente.situacao_financeira %}
+      <p class="fs-5 mb-1">
+        <span class="badge {% if situacao == 'Inadimplente' %}text-bg-danger{% elif situacao == 'Em dia' %}text-bg-success{% else %}text-bg-warning{% endif %}">{{ situacao }}</span>
+      </p>
+      {% endwith %}
+      <p class="mb-2">Em aberto: <strong>{{ cliente.total_em_aberto|moeda }}</strong></p>
+      {% if promissorias %}
+      <ul class="list-group list-group-flush small">
+        {% for p in promissorias %}
+        <li class="list-group-item d-flex justify-content-between px-0 {% if p.esta_vencida %}text-danger{% endif %}">
+          <span>{{ p.numero }} · vence {{ p.data_vencimento|date:"d/m/Y" }}{% if p.esta_vencida %} ({{ p.dias_atraso }} dia{{ p.dias_atraso|pluralize }} de atraso){% endif %}</span>
+          <strong>{{ p.valor_em_aberto|moeda }}</strong>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header fw-semibold">{% if eh_gerente %}Histórico de compras{% else %}Minhas vendas para este cliente{% endif %}</div>
+  {% if vendas %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Venda</th><th>Data</th>{% if eh_gerente %}<th>Vendedor</th>{% endif %}<th>Pagamento</th><th class="text-end">Total</th></tr>
+      </thead>
+      <tbody>
+        {% for venda in vendas %}
+        <tr class="{% if venda.status == 'cancelada' %}text-decoration-line-through text-muted{% endif %}">
+          <td><a href="{% url 'vendas:detalhe' venda.pk %}" class="text-decoration-none">#{{ venda.pk }}</a></td>
+          <td class="text-nowrap">{{ venda.data_venda|date:"d/m/Y H:i" }}</td>
+          {% if eh_gerente %}<td>{{ venda.vendedor.get_full_name|default:venda.vendedor.username|default:"-" }}</td>{% endif %}
+          <td>{{ venda.get_forma_pagamento_display }}</td>
+          <td class="text-end fw-semibold text-nowrap">{{ venda.valor_total|moeda }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted p-3 mb-0">Nenhuma venda registrada.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% load formatacao %}
+<div class="card shadow-sm h-100">
+  <div class="card-header bg-{{ cor }}-subtle fw-semibold">{{ titulo }}</div>
+  <div class="card-body p-0">
+    {% if lista %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>Nº</th><th>Cliente</th><th>Vencimento</th><th class="text-end text-nowrap">Em aberto</th></tr>
+        </thead>
+        <tbody>
+          {% for p in lista %}
+          <tr class="{% if p.esta_vencida %}table-danger{% endif %}">
+            <td class="text-nowrap">{{ p.numero }}</td>
+            <td>{{ p.cliente.nome }}</td>
+            <td>
+              {{ p.data_vencimento|date:"d/m/Y" }}
+              {% if p.esta_vencida %}
+                <span class="badge text-bg-danger">{{ p.dias_atraso }} dia{{ p.dias_atraso|pluralize }} de atraso</span>
+              {% elif p.dias_para_vencer == 0 %}
+                <span class="badge text-bg-warning">vence hoje</span>
+              {% else %}
+                <span class="badge text-bg-warning">em {{ p.dias_para_vencer }} dia{{ p.dias_para_vencer|pluralize }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end fw-semibold text-nowrap">{{ p.valor_em_aberto|moeda }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted p-3 mb-0">{{ vazio }}</p>
+    {% endif %}
+  </div>
+</div>

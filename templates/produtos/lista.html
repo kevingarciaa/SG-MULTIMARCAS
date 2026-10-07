@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load formatacao %}
+
+{% block title %}Produtos{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">Produtos</h1>
+  {% if perms.produtos.add_produto and user.is_staff %}
+  <a href="{% url 'admin:produtos_produto_add' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg me-1"></i>Cadastrar no painel</a>
+  {% endif %}
+</div>
+
+<form method="get" class="card shadow-sm mb-3">
+  <div class="card-body row g-2 align-items-end">
+    <div class="col-12 col-md-6">
+      <label class="form-label small mb-1" for="busca">Buscar</label>
+      <input type="search" id="busca" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Nome, marca ou código">
+    </div>
+    <div class="col-auto">
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" name="inativos" value="1" id="inativos" {% if request.GET.inativos %}checked{% endif %}>
+        <label class="form-check-label" for="inativos">Incluir inativos</label>
+      </div>
+    </div>
+    <div class="col-auto"><button class="btn btn-outline-primary"><i class="bi bi-search me-1"></i>Buscar</button></div>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  {% if produtos %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Produto</th><th class="d-none d-md-table-cell">Marca</th><th class="d-none d-md-table-cell">Código</th><th class="text-end">Preço</th><th class="text-end">Estoque</th></tr>
+      </thead>
+      <tbody>
+        {% for produto in produtos %}
+        <tr>
+          <td>
+            <span class="fw-semibold">{{ produto.nome }}</span>
+            {% if not produto.ativo %}<span class="badge text-bg-secondary">inativo</span>{% endif %}
+            {% if produto.descricao %}<div class="small text-muted">{{ produto.descricao|truncatechars:80 }}</div>{% endif %}
+          </td>
+          <td class="d-none d-md-table-cell">{{ produto.marca|default:"-" }}</td>
+          <td class="d-none d-md-table-cell">{{ produto.codigo|default:"-" }}</td>
+          <td class="text-end text-nowrap fw-semibold">{{ produto.preco|moeda }}</td>
+          <td class="text-end">
+            <span class="badge {% if produto.estoque == 0 %}text-bg-danger{% elif produto.estoque <= 5 %}text-bg-warning{% else %}text-bg-light border{% endif %}">{{ produto.estoque }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted p-3 mb-0">Nenhum produto encontrado.</p>
+  {% endif %}
+</div>
+{% include "partials/_paginacao.html" %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nova venda{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Nova venda</h1>
+
+<form method="post" novalidate id="form-venda">
+  {% csrf_token %}
+  {% for erro in form.non_field_errors %}<div class="alert alert-danger">{{ erro }}</div>{% endfor %}
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-7">
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold">Produtos</div>
+        <div class="card-body">
+          {{ formset.management_form }}
+          {% for erro in formset.non_form_errors %}<div class="alert alert-danger py-2">{{ erro }}</div>{% endfor %}
+          <div id="itens">
+            {% for item in formset %}
+              {% include "vendas/_item.html" with item=item %}
+            {% endfor %}
+          </div>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="adicionar-item">
+            <i class="bi bi-plus-lg me-1"></i>Adicionar produto
+          </button>
+          <template id="modelo-item">{% include "vendas/_item.html" with item=formset.empty_form %}</template>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold">Pagamento</div>
+        <div class="card-body">
+          <div class="mb-3">{% include "partials/_campo.html" with field=form.cliente %}
+            {% if perms.clientes.add_cliente %}<a href="{% url 'clientes:novo' %}" class="small" target="_blank">Cadastrar novo cliente</a>{% endif %}
+          </div>
+          <div class="mb-3">{% include "partials/_campo.html" with field=form.forma_pagamento %}</div>
+          <div class="mb-3" id="campo-vencimento">{% include "partials/_campo.html" with field=form.vencimento_promissoria %}</div>
+          <div class="mb-3">{% include "partials/_campo.html" with field=form.desconto %}</div>
+          <div class="mb-3">{% include "partials/_campo.html" with field=form.observacoes %}</div>
+          <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-lg me-1"></i>Registrar venda</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/venda_form.js' %}"></script>{% endblock %}

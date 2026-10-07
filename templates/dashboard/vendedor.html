@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static formatacao %}
+
+{% block title %}Meu painel{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h1 class="h3 mb-0">Olá, {{ user.first_name|default:user.username }}!</h1>
+    <p class="text-muted mb-0">Seus resultados em {% now "d/m/Y" %}</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if perms.vendas.add_venda %}<a href="{% url 'vendas:nova' %}" class="btn btn-success"><i class="bi bi-cart-plus me-1"></i>Nova venda</a>{% endif %}
+    {% if perms.clientes.add_cliente %}<a href="{% url 'clientes:novo' %}" class="btn btn-outline-primary"><i class="bi bi-person-plus me-1"></i>Cadastrar cliente</a>{% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% include "dashboard/_card.html" with titulo="Minhas vendas (valor total)" valor=indicadores.geral.valor|moeda icone="cash-stack" cor="primary" %}
+  {% include "dashboard/_card.html" with titulo="Vendas realizadas" valor=indicadores.geral.quantidade icone="bag-check" cor="secondary" detalhe="desde o início" %}
+  {% include "dashboard/_card.html" with titulo="Ticket médio" valor=indicadores.geral.ticket_medio|moeda icone="receipt-cutoff" cor="dark" detalhe="valor médio por venda" %}
+  {% include "dashboard/_card.html" with titulo="Vendas hoje" valor=indicadores.dia.valor|moeda icone="sun" cor="warning" detalhe=indicadores.dia.quantidade|stringformat:"d"|add:" venda(s)" %}
+  {% include "dashboard/_card.html" with titulo="Vendas no mês" valor=indicadores.mes.valor|moeda icone="calendar-check" cor="info" detalhe=indicadores.mes.quantidade|stringformat:"d"|add:" venda(s)" %}
+  {% include "dashboard/_card.html" with titulo="Clientes que cadastrei" valor=indicadores.clientes_cadastrados icone="people" cor="success" %}
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-7">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Minhas vendas nos últimos 30 dias</h2>
+      <div class="grafico"><canvas id="graficoVendasDia"></canvas></div>
+    </div></div>
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold d-flex justify-content-between">
+        Últimas vendas <a href="{% url 'vendas:lista' %}" class="small text-decoration-none">ver todas</a>
+      </div>
+      {% if ultimas_vendas %}
+      <ul class="list-group list-group-flush">
+        {% for venda in ultimas_vendas %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="{% url 'vendas:detalhe' venda.pk %}" class="text-decoration-none text-body">
+            <strong>#{{ venda.pk }}</strong> · {{ venda.cliente.nome|default:"Consumidor" }}
+            <div class="small text-muted">{{ venda.data_venda|date:"d/m/Y H:i" }} · {{ venda.get_forma_pagamento_display }}</div>
+          </a>
+          <span class="fw-semibold text-nowrap {% if venda.status == 'cancelada' %}text-decoration-line-through text-muted{% endif %}">{{ venda.valor_total|moeda }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted p-3 mb-0">Você ainda não registrou vendas.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{{ graficos|json_script:"dados-graficos" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

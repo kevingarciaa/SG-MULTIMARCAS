@@ -1,0 +1,20 @@
+{% load formatacao %}
+<div class="card shadow-sm h-100">
+  <div class="card-body">
+    <div class="d-flex justify-content-between">
+      <div class="text-muted small text-uppercase fw-semibold">{{ titulo }}</div>
+      <i class="bi bi-{{ icone }} text-primary opacity-50 fs-4"></i>
+    </div>
+    <div class="fs-3 fw-bold">{{ atual }}</div>
+    <div class="small">
+      {% if variacao is None %}
+        <span class="text-muted">sem vendas no período anterior</span>
+      {% else %}
+        <span class="fw-semibold {% if variacao >= 0 %}text-success{% else %}text-danger{% endif %}">
+          <i class="bi bi-arrow-{% if variacao >= 0 %}up{% else %}down{% endif %}-right"></i>{{ variacao|percentual }}
+        </span>
+        <span class="text-muted">vs. {{ anterior }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>

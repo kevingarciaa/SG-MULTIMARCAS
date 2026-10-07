@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static formatacao %}
+
+{% block title %}Painel da loja{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h1 class="h3 mb-0">Olá, {{ user.first_name|default:user.username }}!</h1>
+    <p class="text-muted mb-0">Visão geral da loja em {% now "d/m/Y" %}</p>
+  </div>
+  <a href="{% url 'dashboard:analises' %}" class="btn btn-primary"><i class="bi bi-graph-up-arrow me-1"></i>Análises por período</a>
+</div>
+
+{% if indicadores.promissorias_vencidas %}
+<div class="alert alert-danger d-flex align-items-center" role="alert">
+  <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+  <div>Existem <strong>{{ indicadores.promissorias_vencidas }}</strong> promissória{{ indicadores.promissorias_vencidas|pluralize }} vencida{{ indicadores.promissorias_vencidas|pluralize }}.</div>
+</div>
+{% endif %}
+{% if alertas.a_vencer %}
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+  <i class="bi bi-clock-history fs-4 me-3"></i>
+  <div><strong>{{ alertas.a_vencer|length }}</strong> promissória{{ alertas.a_vencer|length|pluralize }} vence{{ alertas.a_vencer|length|pluralize:"m" }} nos próximos {{ dias_alerta }} dias.</div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Faturamento total" valor=indicadores.geral.valor|moeda icone="cash-stack" cor="primary" detalhe=indicadores.geral.quantidade|stringformat:"d"|add:" vendas no total" %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Ticket médio" valor=indicadores.geral.ticket_medio|moeda icone="receipt-cutoff" cor="dark" detalhe="valor médio por venda" %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Vendas do dia" valor=indicadores.dia.valor|moeda icone="sun" cor="warning" detalhe=indicadores.dia.quantidade|stringformat:"d"|add:" venda(s) hoje" %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Vendas do mês" valor=indicadores.mes.valor|moeda icone="calendar-check" cor="info" detalhe=indicadores.mes.quantidade|stringformat:"d"|add:" venda(s) no mês" %}
+  {% if indicadores.melhor_vendedor %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Melhor vendedor do mês" valor=indicadores.melhor_vendedor.nome icone="trophy" cor="success" detalhe=indicadores.melhor_vendedor.valor|moeda %}
+  {% else %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Melhor vendedor do mês" valor="-" icone="trophy" cor="success" detalhe="sem vendas no mês" %}
+  {% endif %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Clientes cadastrados" valor=indicadores.total_clientes icone="people" cor="secondary" detalhe=indicadores.total_produtos|stringformat:"d"|add:" produtos ativos" %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Total a receber" valor=indicadores.total_a_receber|moeda icone="wallet2" cor="warning" detalhe=indicadores.promissorias_abertas|stringformat:"d"|add:" promissórias em aberto" %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Promissórias vencidas" valor=indicadores.promissorias_vencidas icone="exclamation-triangle" cor="danger" detalhe=indicadores.promissorias_pagas|stringformat:"d"|add:" já pagas" %}
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header fw-semibold d-flex justify-content-between">
+    Desempenho dos vendedores no mês
+    <a href="{% url 'dashboard:analises' %}" class="small text-decoration-none">comparar períodos</a>
+  </div>
+  {% include "dashboard/_ranking.html" with ranking=ranking %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-8">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Vendas por mês (últimos 12 meses)</h2>
+      <div class="grafico"><canvas id="graficoVendasMes"></canvas></div>
+    </div></div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Formas de pagamento mais utilizadas</h2>
+      <div class="grafico"><canvas id="graficoFormaPagamento"></canvas></div>
+    </div></div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Promissórias</h2>
+      <div class="grafico"><canvas id="graficoPromissorias"></canvas></div>
+    </div></div>
+  </div>
+  <div class="col-12 col-xl-8">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6 card-title">Evolução das vendas (últimos 30 dias)</h2>
+      <div class="grafico"><canvas id="graficoVendasDia"></canvas></div>
+    </div></div>
+  </div>
+  <div class="col-12 col-xl-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold">Produtos mais vendidos</div>
+      {% include "dashboard/_tabela_produtos.html" with produtos=produtos %}
+    </div>
+  </div>
+  <div class="col-12 col-xl-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold">Formas de pagamento</div>
+      {% include "dashboard/_tabela_formas.html" with formas=formas %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    {% include "dashboard/_tabela_promissorias.html" with titulo="Promissórias vencidas" lista=alertas.vencidas vazio="Nenhuma promissória vencida." cor="danger" %}
+  </div>
+  <div class="col-12 col-lg-6">
+    {% include "dashboard/_tabela_promissorias.html" with titulo="Vencendo em breve" lista=alertas.a_vencer vazio="Nenhuma promissória vencendo nos próximos dias." cor="warning" %}
+  </div>
+</div>
+
+{{ graficos|json_script:"dados-graficos" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

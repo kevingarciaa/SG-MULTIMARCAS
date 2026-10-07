@@ -1,0 +1,16 @@
+<div class="item-venda row g-2 align-items-start mb-2 {% if item.DELETE.value %}d-none{% endif %}">
+  {% for hidden in item.hidden_fields %}{{ hidden }}{% endfor %}
+  <div class="col-12 col-sm-7">
+    {{ item.produto }}
+    {% for erro in item.produto.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+  </div>
+  <div class="col-8 col-sm-3">
+    {{ item.quantidade }}
+    {% for erro in item.quantidade.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+  </div>
+  <div class="col-4 col-sm-2 text-end">
+    <span class="d-none">{{ item.DELETE }}</span>
+    <button type="button" class="btn btn-outline-danger remover-item" title="Remover"><i class="bi bi-trash"></i></button>
+  </div>
+  {% for erro in item.non_field_errors %}<div class="col-12 text-danger small">{{ erro }}</div>{% endfor %}
+</div>
