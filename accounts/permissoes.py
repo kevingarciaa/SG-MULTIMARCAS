@@ -19,6 +19,8 @@ PERMISSOES_VENDEDOR = [
     "clientes.add_cliente",
     "clientes.change_cliente",
     "produtos.view_produto",
+    "produtos.add_produto",
+    "produtos.change_produto",
     "vendas.view_venda",
     "vendas.add_venda",
     "vendas.view_itemvenda",

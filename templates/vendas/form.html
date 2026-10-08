@@ -39,14 +39,53 @@
           </div>
           <div class="mb-3">{% include "partials/_campo.html" with field=form.forma_pagamento %}</div>
           <div class="mb-3" id="campo-vencimento">{% include "partials/_campo.html" with field=form.vencimento_promissoria %}</div>
-          <div class="mb-3">{% include "partials/_campo.html" with field=form.desconto %}</div>
+          <div class="mb-3">{% include "partials/_campo.html" with field=form.desconto_percentual %}</div>
           <div class="mb-3">{% include "partials/_campo.html" with field=form.observacoes %}</div>
-          <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-lg me-1"></i>Registrar venda</button>
+
+          <div class="border rounded bg-light p-3 mb-3" id="resumo-venda">
+            <div class="d-flex justify-content-between small"><span>Subtotal (<span data-resumo="quantidade">0</span> itens)</span><span data-resumo="subtotal">R$ 0,00</span></div>
+            <div class="d-flex justify-content-between small text-danger"><span>Desconto (<span data-resumo="percentual">0%</span>)</span><span data-resumo="desconto">- R$ 0,00</span></div>
+            <hr class="my-2">
+            <div class="d-flex justify-content-between fw-bold fs-5"><span>Total</span><span data-resumo="total">R$ 0,00</span></div>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100"><i class="bi bi-calculator me-1"></i>Revisar e registrar venda</button>
         </div>
       </div>
     </div>
   </div>
 </form>
+
+<div class="modal fade" id="modal-confirmar-venda" tabindex="-1" aria-labelledby="titulo-confirmar-venda" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="titulo-confirmar-venda"><i class="bi bi-receipt me-1"></i>Simulação da venda</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-sm align-middle mb-3">
+          <thead class="table-light"><tr><th>Produto</th><th class="text-center">Qtd.</th><th class="text-end">Unitário</th><th class="text-end">Subtotal</th></tr></thead>
+          <tbody id="simulacao-itens"></tbody>
+        </table>
+        <div class="d-flex justify-content-between"><span>Subtotal</span><span data-resumo="subtotal"></span></div>
+        <div class="d-flex justify-content-between text-danger"><span>Desconto (<span data-resumo="percentual"></span>)</span><span data-resumo="desconto"></span></div>
+        <hr class="my-2">
+        <div class="d-flex justify-content-between fw-bold fs-4"><span>Total a pagar</span><span data-resumo="total"></span></div>
+        <dl class="row small text-muted mt-3 mb-0">
+          <dt class="col-5">Cliente</dt><dd class="col-7 mb-1" id="simulacao-cliente"></dd>
+          <dt class="col-5">Pagamento</dt><dd class="col-7 mb-1" id="simulacao-pagamento"></dd>
+          <dt class="col-5 simulacao-vencimento">Vencimento</dt><dd class="col-7 mb-0 simulacao-vencimento" id="simulacao-vencimento"></dd>
+        </dl>
+        <div class="alert alert-warning mt-3 mb-0 d-none" id="simulacao-aviso"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Voltar e ajustar</button>
+        <button type="button" class="btn btn-success" id="confirmar-venda"><i class="bi bi-check-lg me-1"></i>Confirmar venda</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}<script src="{% static 'js/venda_form.js' %}"></script>{% endblock %}

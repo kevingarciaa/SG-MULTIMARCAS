@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -110,14 +110,13 @@ class VendaCreateView(PermissionRequiredMixin, View):
              if item.cleaned_data and not item.cleaned_data.get("DELETE")),
             Decimal("0"),
         )
-        desconto = form.cleaned_data.get("desconto") or Decimal("0")
-        if desconto > subtotal:
-            form.add_error("desconto", "O desconto não pode ser maior que o valor dos produtos.")
-            return False
+        percentual = form.cleaned_data.get("desconto_percentual") or Decimal("0")
+        desconto = (subtotal * percentual / 100).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         promissoria = form.cleaned_data["forma_pagamento"] == Venda.FormaPagamento.PROMISSORIA
-        if promissoria and desconto == subtotal:
-            form.add_error("desconto", "Venda em promissória precisa ter valor maior que zero.")
+        if promissoria and desconto >= subtotal:
+            form.add_error("desconto_percentual", "Venda em promissória precisa ter valor maior que zero.")
             return False
+        form.instance.desconto = desconto
         return True
 
     @transaction.atomic

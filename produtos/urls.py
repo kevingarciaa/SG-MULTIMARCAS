@@ -6,4 +6,6 @@ app_name = "produtos"
 
 urlpatterns = [
     path("", views.ProdutoListView.as_view(), name="lista"),
+    path("novo/", views.ProdutoCreateView.as_view(), name="novo"),
+    path("<int:pk>/editar/", views.ProdutoUpdateView.as_view(), name="editar"),
 ]

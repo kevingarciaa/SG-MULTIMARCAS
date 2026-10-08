@@ -6,8 +6,8 @@
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
   <h1 class="h3 mb-0">Produtos</h1>
-  {% if perms.produtos.add_produto and user.is_staff %}
-  <a href="{% url 'admin:produtos_produto_add' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg me-1"></i>Cadastrar no painel</a>
+  {% if perms.produtos.add_produto %}
+  <a href="{% url 'produtos:novo' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Cadastrar produto</a>
   {% endif %}
 </div>
 
@@ -32,7 +32,7 @@
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="table-light">
-        <tr><th>Produto</th><th class="d-none d-md-table-cell">Marca</th><th class="d-none d-md-table-cell">Código</th><th class="text-end">Preço</th><th class="text-end">Estoque</th></tr>
+        <tr><th>Produto</th><th class="d-none d-md-table-cell">Marca</th><th class="d-none d-md-table-cell">Código</th><th class="text-end">Preço</th><th class="text-end">Estoque</th>{% if perms.produtos.change_produto %}<th></th>{% endif %}</tr>
       </thead>
       <tbody>
         {% for produto in produtos %}
@@ -48,6 +48,11 @@
           <td class="text-end">
             <span class="badge {% if produto.estoque == 0 %}text-bg-danger{% elif produto.estoque <= 5 %}text-bg-warning{% else %}text-bg-light border{% endif %}">{{ produto.estoque }}</span>
           </td>
+          {% if perms.produtos.change_produto %}
+          <td class="text-end text-nowrap">
+            <a href="{% url 'produtos:editar' produto.pk %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+          </td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>

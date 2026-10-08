@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.shortcuts import redirect
 from django.views.generic import TemplateView
 
 from accounts.mixins import GerenteRequiredMixin
@@ -10,25 +11,20 @@ from . import services
 
 
 class DashboardView(TemplateView):
-    """Gerente vê a visão geral da loja; vendedor vê apenas os próprios resultados."""
+    """Página inicial: gerente vê a visão geral da loja; vendedor vai direto para a nova venda."""
 
-    def get_template_names(self):
-        if eh_gerente(self.request.user):
-            return ["dashboard/gerente.html"]
-        return ["dashboard/vendedor.html"]
+    template_name = "dashboard/gerente.html"
+
+    def get(self, request, *args, **kwargs):
+        if not eh_gerente(request.user):
+            return redirect("vendas:nova")
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if eh_gerente(self.request.user):
-            context.update(self.contexto_gerente())
-        else:
-            context.update(self.contexto_vendedor())
-        return context
-
-    def contexto_gerente(self):
         vendas = Venda.objects.concluidas()
         mes = calcular_periodo(FiltroPeriodoForm.ESTE_MES)
-        return {
+        context.update({
             "indicadores": services.indicadores_loja(),
             "periodo": mes,
             "ranking": services.ranking_vendedores(mes.filtrar(vendas)),
@@ -43,16 +39,8 @@ class DashboardView(TemplateView):
                 "promissorias": services.promissorias_por_situacao(),
                 "maisVendidos": services.grafico_produtos(vendas),
             },
-        }
-
-    def contexto_vendedor(self):
-        usuario = self.request.user
-        minhas_vendas = Venda.objects.concluidas().filter(vendedor=usuario)
-        return {
-            "indicadores": services.indicadores_vendedor(usuario),
-            "ultimas_vendas": Venda.objects.filter(vendedor=usuario).select_related("cliente")[:8],
-            "graficos": {"vendasDia": services.vendas_ultimos_dias(minhas_vendas)},
-        }
+        })
+        return context
 
 
 class AnalisesView(GerenteRequiredMixin, TemplateView):

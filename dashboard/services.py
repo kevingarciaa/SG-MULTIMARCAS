@@ -92,14 +92,6 @@ def indicadores_loja():
     }
 
 
-def indicadores_vendedor(usuario):
-    vendas = Venda.objects.concluidas().filter(vendedor=usuario)
-    return {
-        **resumo_por_prazo(vendas),
-        "clientes_cadastrados": Cliente.objects.filter(cadastrado_por=usuario).count(),
-    }
-
-
 def vendas_por_mes(vendas, meses=12):
     """Valor vendido em cada um dos últimos `meses` meses (inclui meses sem venda)."""
     hoje = timezone.localdate()

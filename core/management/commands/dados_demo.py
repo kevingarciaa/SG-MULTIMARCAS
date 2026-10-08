@@ -22,6 +22,15 @@ PRODUTOS = [
 ]
 
 
+def gerar_cpf():
+    """CPF fictício com dígitos verificadores válidos."""
+    digitos = [random.randint(0, 9) for _ in range(9)]
+    for tamanho in (9, 10):
+        soma = sum(d * (tamanho + 1 - i) for i, d in enumerate(digitos))
+        digitos.append((soma * 10) % 11 % 10)
+    return "".join(map(str, digitos))
+
+
 class Command(BaseCommand):
     help = "Cria dados fictícios para testar o dashboard. Use apenas em ambiente de testes."
 
@@ -33,7 +42,9 @@ class Command(BaseCommand):
 
         vendedores = self.obter_vendedores()
         clientes = [
-            Cliente.objects.create(nome=n, telefone=f"119{i:08d}", cadastrado_por=random.choice(vendedores))
+            Cliente.objects.create(
+                nome=n, cpf=gerar_cpf(), telefone=f"119{i:08d}", cadastrado_por=random.choice(vendedores),
+            )
             for i, n in enumerate(CLIENTES)
         ]
         produtos = [

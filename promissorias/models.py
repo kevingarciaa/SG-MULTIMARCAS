@@ -9,6 +9,7 @@ from django.db.models import Max, Sum
 from django.utils import timezone
 
 from core.models import TimeStampedModel
+from core.templatetags.formatacao import moeda
 
 
 class PromissoriaQuerySet(models.QuerySet):
@@ -222,7 +223,7 @@ class Pagamento(TimeStampedModel):
             raise ValidationError("Não é possível registrar pagamento em promissória cancelada.")
         if self.valor and self.valor > self.promissoria.valor_em_aberto:
             raise ValidationError(
-                {"valor": f"O valor excede o saldo em aberto (R$ {self.promissoria.valor_em_aberto})."}
+                {"valor": f"O valor excede o saldo em aberto ({moeda(self.promissoria.valor_em_aberto)})."}
             )
 
     def save(self, *args, **kwargs):

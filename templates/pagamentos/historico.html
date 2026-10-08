@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load formatacao %}
+
+{% block title %}Histórico - {{ cliente.nome }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h1 class="h3 mb-0">Histórico de {{ cliente.nome }}</h1>
+    <a href="{% url 'pagamentos:cliente' cliente.pk %}" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Voltar para o cliente</a>
+  </div>
+  <div class="text-end">
+    <div class="small text-muted">Está devendo</div>
+    <div class="fs-5 fw-semibold {% if cliente.possui_vencidas %}text-danger{% endif %}">{{ cliente.total_em_aberto|moeda }}</div>
+  </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a href="?" class="btn btn-sm {% if not filtro %}btn-primary{% else %}btn-outline-primary{% endif %}">Tudo</a>
+  {% for chave, rotulo in filtros.items %}
+  <a href="?tipo={{ chave }}" class="btn btn-sm {% if filtro == chave %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ rotulo }}</a>
+  {% endfor %}
+</div>
+{% if not eh_gerente %}<p class="small text-muted">As compras mostradas são apenas as que você registrou para este cliente.</p>{% endif %}
+
+<div class="card shadow-sm">
+  {% if eventos %}
+  <ul class="list-group list-group-flush">
+    {% for evento in eventos %}
+    {% ifchanged evento.momento|date:"Y-m-d" %}
+    <li class="list-group-item bg-light small fw-semibold text-muted">{{ evento.momento|date:"l, d \d\e F \d\e Y"|capfirst }}</li>
+    {% endifchanged %}
+    <li class="list-group-item">
+      <div class="d-flex gap-3">
+        <div class="fs-4 text-{{ evento.cor }}"><i class="bi bi-{{ evento.icone }}"></i></div>
+        <div class="flex-grow-1 {% if evento.riscado %}text-muted{% endif %}">
+          <div class="d-flex flex-wrap justify-content-between gap-2">
+            <span class="fw-semibold {% if evento.riscado %}text-decoration-line-through{% endif %}">
+              {% if evento.link %}<a href="{{ evento.link }}" class="text-decoration-none">{{ evento.titulo }}</a>{% else %}{{ evento.titulo }}{% endif %}
+            </span>
+            {% if evento.valor %}<span class="fw-semibold text-nowrap {% if evento.riscado %}text-decoration-line-through{% elif evento.tipo == 'pagamento' %}text-success{% endif %}">{{ evento.valor|moeda }}</span>{% endif %}
+          </div>
+          {% for linha in evento.detalhes %}<div class="small">{{ linha }}</div>{% endfor %}
+          <div class="small text-muted mt-1">
+            {% if evento.hora %}{{ evento.momento|time:"H:i" }}{% endif %}
+            {% if evento.info %}{% if evento.hora %} · {% endif %}{{ evento.info }}{% endif %}
+            {% if evento.usuario %}{% if evento.hora or evento.info %} · {% endif %}por {{ evento.usuario|nome_usuario }}{% endif %}
+          </div>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted p-3 mb-0">Nada registrado{% if filtro %} neste filtro{% endif %}.</p>
+  {% endif %}
+</div>
+{% endblock %}

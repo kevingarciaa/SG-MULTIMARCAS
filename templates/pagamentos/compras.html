@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load formatacao %}
+
+{% block title %}Compras - {{ cliente.nome }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h1 class="h3 mb-0">Tudo o que {{ cliente.nome }} comprou</h1>
+    <a href="{% url 'pagamentos:cliente' cliente.pk %}" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Voltar para o cliente</a>
+  </div>
+  <div class="text-end">
+    <div class="small text-muted">{{ total_compras }} compra{{ total_compras|pluralize }}</div>
+    <div class="fs-4 fw-semibold">{{ total_valor|moeda }}</div>
+  </div>
+</div>
+{% if not eh_gerente %}<p class="small text-muted">Mostrando apenas as vendas que você registrou para este cliente.</p>{% endif %}
+
+{% for venda in vendas %}
+<div class="card shadow-sm mb-3 {% if venda.status == 'cancelada' %}opacity-75{% endif %}">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span>
+      <a href="{% url 'vendas:detalhe' venda.pk %}" class="fw-semibold text-decoration-none">Venda #{{ venda.pk }}</a>
+      <span class="text-muted">· {{ venda.data_venda|date:"d/m/Y \à\s H:i" }} · {{ venda.get_forma_pagamento_display }}</span>
+      {% if eh_gerente %}<span class="text-muted">· {{ venda.vendedor|nome_usuario }}</span>{% endif %}
+    </span>
+    {% if venda.status == 'cancelada' %}<span class="badge text-bg-secondary">Cancelada</span>{% endif %}
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0 {% if venda.status == 'cancelada' %}text-decoration-line-through text-muted{% endif %}">
+      <thead class="table-light">
+        <tr><th>Produto</th><th class="text-center">Qtd.</th><th class="text-end">Preço unitário</th><th class="text-end">Subtotal</th></tr>
+      </thead>
+      <tbody>
+        {% for item in venda.itens.all %}
+        <tr>
+          <td>{{ item.produto.nome }}{% if item.produto.marca %} <span class="text-muted small">({{ item.produto.marca }})</span>{% endif %}</td>
+          <td class="text-center">{{ item.quantidade }}</td>
+          <td class="text-end text-nowrap">{{ item.preco_unitario|moeda }}</td>
+          <td class="text-end text-nowrap">{{ item.subtotal|moeda }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        {% if venda.desconto %}
+        <tr><td colspan="3" class="text-end text-danger">Desconto</td><td class="text-end text-nowrap text-danger">- {{ venda.desconto|moeda }}</td></tr>
+        {% endif %}
+        <tr><td colspan="3" class="text-end fw-semibold">Total</td><td class="text-end text-nowrap fw-semibold">{{ venda.valor_total|moeda }}</td></tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% empty %}
+<div class="card shadow-sm"><p class="text-muted p-3 mb-0">Nenhuma compra registrada para este cliente.</p></div>
+{% endfor %}
+{% endblock %}

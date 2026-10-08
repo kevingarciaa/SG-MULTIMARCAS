@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load formatacao %}
+
+{% block title %}Registrar pagamento - {{ cliente.nome }}{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-0">Registrar pagamento</h1>
+<p class="text-muted mb-3">{{ cliente.nome }} · está devendo <strong class="{% if cliente.possui_vencidas %}text-danger{% endif %}">{{ cliente.total_em_aberto|moeda }}</strong></p>
+
+<div class="card shadow-sm" style="max-width: 700px;">
+  <div class="card-body">
+    {% if form.fields.promissoria.queryset %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for erro in form.non_field_errors %}<div class="alert alert-danger">{{ erro }}</div>{% endfor %}
+      <div class="row g-3">
+        <div class="col-12">{% include "partials/_campo.html" with field=form.promissoria %}</div>
+        <div class="col-12 col-md-4">{% include "partials/_campo.html" with field=form.valor %}</div>
+        <div class="col-6 col-md-4">{% include "partials/_campo.html" with field=form.data_pagamento %}</div>
+        <div class="col-6 col-md-4">{% include "partials/_campo.html" with field=form.forma_pagamento %}</div>
+        <div class="col-12">{% include "partials/_campo.html" with field=form.observacoes %}</div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Registrar pagamento</button>
+        <a href="{% url 'pagamentos:cliente' cliente.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </form>
+    {% else %}
+    <p class="mb-3">Este cliente não tem nenhuma promissória em aberto para pagar.</p>
+    <a href="{% url 'pagamentos:cliente' cliente.pk %}" class="btn btn-outline-secondary">Voltar</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

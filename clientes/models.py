@@ -16,7 +16,7 @@ class ClienteQuerySet(models.QuerySet):
 class Cliente(TimeStampedModel):
     nome = models.CharField("nome completo", max_length=150)
     cpf = models.CharField(
-        "CPF", max_length=14, unique=True, blank=True, null=True, validators=[validar_cpf],
+        "CPF", max_length=14, unique=True, validators=[validar_cpf],
         help_text="Com ou sem pontuação. É salvo somente com números.",
     )
     telefone = models.CharField("telefone", max_length=15, validators=[validar_telefone])
@@ -43,7 +43,7 @@ class Cliente(TimeStampedModel):
         return self.nome
 
     def save(self, *args, **kwargs):
-        self.cpf = somente_digitos(self.cpf) or None
+        self.cpf = somente_digitos(self.cpf)
         self.telefone = somente_digitos(self.telefone)
         super().save(*args, **kwargs)
 

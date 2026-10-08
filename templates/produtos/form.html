@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Editar produto{% else %}Cadastrar produto{% endif %}{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">{% if object %}Editar produto{% else %}Cadastrar produto{% endif %}</h1>
+<div class="card shadow-sm" style="max-width: 900px;">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for erro in form.non_field_errors %}<div class="alert alert-danger">{{ erro }}</div>{% endfor %}
+      <div class="row g-3">
+        <div class="col-12 col-md-8">{% include "partials/_campo.html" with field=form.nome %}</div>
+        <div class="col-12 col-md-4">{% include "partials/_campo.html" with field=form.marca %}</div>
+        <div class="col-12 col-md-4">{% include "partials/_campo.html" with field=form.codigo %}</div>
+        <div class="col-6 col-md-4">{% include "partials/_campo.html" with field=form.preco %}</div>
+        <div class="col-6 col-md-4">{% include "partials/_campo.html" with field=form.estoque %}</div>
+        <div class="col-12">{% include "partials/_campo.html" with field=form.descricao %}</div>
+        <div class="col-12">{% include "partials/_campo.html" with field=form.ativo %}</div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+        <a href="{% url 'produtos:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if object %}
+<div class="card shadow-sm mt-4" style="max-width: 900px;">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <span class="fw-semibold"><i class="bi bi-clock-history me-1"></i>Histórico de alterações</span>
+    <span class="small text-muted">Última alteração: {{ object.atualizado_em|date:"d/m/Y H:i" }}</span>
+  </div>
+  {% if historico %}
+  <ul class="list-group list-group-flush">
+    {% for registro in historico %}
+    <li class="list-group-item">
+      <div class="d-flex flex-wrap justify-content-between gap-2">
+        <span>
+          <span class="badge {% if registro.acao == 'Cadastro' %}text-bg-success{% else %}text-bg-primary{% endif %}">{{ registro.acao }}</span>
+          por <strong>{% if registro.usuario %}{{ registro.usuario.get_full_name|default:registro.usuario.username }}{% else %}usuário não identificado{% endif %}</strong>
+        </span>
+        <span class="small text-muted">{{ registro.data|date:"d/m/Y \à\s H:i" }}</span>
+      </div>
+      {% if registro.descricao %}<div class="small text-muted mt-1" style="white-space: pre-line;">{{ registro.descricao }}</div>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted p-3 mb-0">Nenhuma alteração registrada para este produto ainda.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
