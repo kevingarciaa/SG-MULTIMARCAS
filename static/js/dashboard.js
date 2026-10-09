@@ -31,12 +31,6 @@
     if (canvas && dados[chave]) new Chart(canvas, montar(dados[chave]));
   }
 
-  criarGrafico("graficoVendasMes", "vendasMes", (d) => ({
-    type: "bar",
-    data: { labels: d.rotulos, datasets: [{ label: "Vendido", data: d.valores, backgroundColor: CORES[0] }] },
-    options: opcoesMoeda,
-  }));
-
   criarGrafico("graficoVendasDia", "vendasDia", (d) => ({
     type: "line",
     data: {
@@ -67,15 +61,9 @@
     options: { ...opcoesMoeda, plugins: { ...opcoesMoeda.plugins, legend: { position: "bottom" } } },
   }));
 
-  criarGrafico("graficoVendedores", "vendedores", (d) => ({
-    type: "bar",
-    data: { labels: d.rotulos, datasets: [{ label: "Vendido", data: d.valores, backgroundColor: CORES }] },
-    options: opcoesMoeda,
-  }));
-
   criarGrafico("graficoFormaPagamento", "formaPagamento", (d) => ({
     type: "doughnut",
-    data: { labels: d.rotulos, datasets: [{ data: d.valores, backgroundColor: CORES }] },
+    data: { labels: d.rotulos, datasets: [{ data: d.valores, backgroundColor: d.cores }] },
     options: opcoesPizza,
   }));
 
@@ -83,17 +71,5 @@
     type: "pie",
     data: { labels: d.rotulos, datasets: [{ data: d.valores, backgroundColor: ["#198754", "#ffc107", "#dc3545"] }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
-  }));
-
-  criarGrafico("graficoMaisVendidos", "maisVendidos", (d) => ({
-    type: "bar",
-    data: { labels: d.rotulos, datasets: [{ label: "Unidades vendidas", data: d.valores, backgroundColor: CORES[4] }] },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
-    },
   }));
 })();

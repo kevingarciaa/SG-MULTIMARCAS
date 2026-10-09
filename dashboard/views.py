@@ -24,20 +24,19 @@ class DashboardView(TemplateView):
         context = super().get_context_data(**kwargs)
         vendas = Venda.objects.concluidas()
         mes = calcular_periodo(FiltroPeriodoForm.ESTE_MES)
+        formas = services.formas_pagamento(vendas)
         context.update({
             "indicadores": services.indicadores_loja(),
             "periodo": mes,
             "ranking": services.ranking_vendedores(mes.filtrar(vendas)),
             "produtos": services.produtos_mais_vendidos(vendas),
-            "formas": services.formas_pagamento(vendas),
+            "formas": formas,
             "alertas": services.alertas_promissorias(),
             "dias_alerta": settings.PROMISSORIA_DIAS_ALERTA,
             "graficos": {
-                "vendasMes": services.vendas_por_mes(vendas),
                 "vendasDia": services.vendas_ultimos_dias(vendas),
-                "formaPagamento": services.grafico_formas_pagamento(vendas),
+                "formaPagamento": services.grafico_formas_pagamento(formas),
                 "promissorias": services.promissorias_por_situacao(),
-                "maisVendidos": services.grafico_produtos(vendas),
             },
         })
         return context

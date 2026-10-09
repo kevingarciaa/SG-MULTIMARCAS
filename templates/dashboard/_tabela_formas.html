@@ -8,7 +8,7 @@
     <tbody>
       {% for f in formas %}
       <tr>
-        <td>{{ f.nome }}</td>
+        <td><span class="d-inline-block rounded-circle me-2 align-middle" style="width:.75rem;height:.75rem;background:{{ f.cor }}"></span>{{ f.nome }}</td>
         <td class="text-center">{{ f.quantidade }}</td>
         <td class="text-end text-nowrap">{{ f.valor|moeda }}</td>
         <td class="text-end">{{ f.participacao|percentual }}</td>

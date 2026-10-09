@@ -33,70 +33,32 @@
   {% endwith %}
 </div>
 
-<!-- Vendas por vendedor -->
-<div class="row g-3 mb-4">
-  <div class="col-12 col-xl-7">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Vendas por vendedor</div>
-      {% include "dashboard/_ranking.html" with ranking=vendedores %}
-    </div>
-  </div>
-  <div class="col-12 col-xl-5">
-    <div class="card shadow-sm h-100"><div class="card-body">
-      <h2 class="h6 card-title">Comparação entre vendedores</h2>
-      <div class="grafico"><canvas id="graficoVendedores"></canvas></div>
-    </div></div>
-  </div>
-</div>
-
 <!-- Vendas por período -->
 <div class="row g-3 mb-4">
-  <div class="col-12 col-xl-8">
+  <div class="col-12">
     <div class="card shadow-sm h-100"><div class="card-body">
       <h2 class="h6 card-title">Evolução das vendas (período atual x anterior)</h2>
       <div class="grafico"><canvas id="graficoEvolucao"></canvas></div>
     </div></div>
-  </div>
-  <div class="col-12 col-xl-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Dias com maior volume de vendas</div>
-      {% if dias_top %}
-      <ul class="list-group list-group-flush">
-        {% for d in dias_top %}
-        <li class="list-group-item d-flex justify-content-between">
-          <span>{{ d.dia|date:"D, d/m/Y" }} <small class="text-muted">· {{ d.quantidade }} venda{{ d.quantidade|pluralize }}</small></span>
-          <strong class="text-nowrap">{{ d.valor|moeda }}</strong>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p class="text-muted p-3 mb-0">Nenhuma venda no período.</p>
-      {% endif %}
-    </div>
   </div>
 </div>
 
 <!-- Produtos e formas de pagamento -->
 <div class="row g-3">
   <div class="col-12 col-xl-6">
-    <div class="card shadow-sm mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold">Formas de pagamento</div>
+      <div class="card-body">
+        <div class="grafico"><canvas id="graficoFormaPagamento"></canvas></div>
+      </div>
+      {% include "dashboard/_tabela_formas.html" with formas=formas %}
+    </div>
+  </div>
+  <div class="col-12 col-xl-6">
+    <div class="card shadow-sm h-100">
       <div class="card-header fw-semibold">Produtos mais vendidos</div>
       {% include "dashboard/_tabela_produtos.html" with produtos=produtos %}
     </div>
-    <div class="card shadow-sm"><div class="card-body">
-      <h2 class="h6 card-title">Quantidade vendida por produto</h2>
-      <div class="grafico"><canvas id="graficoMaisVendidos"></canvas></div>
-    </div></div>
-  </div>
-  <div class="col-12 col-xl-6">
-    <div class="card shadow-sm mb-3">
-      <div class="card-header fw-semibold">Formas de pagamento</div>
-      {% include "dashboard/_tabela_formas.html" with formas=formas %}
-    </div>
-    <div class="card shadow-sm"><div class="card-body">
-      <h2 class="h6 card-title">Participação por forma de pagamento</h2>
-      <div class="grafico"><canvas id="graficoFormaPagamento"></canvas></div>
-    </div></div>
   </div>
 </div>
 

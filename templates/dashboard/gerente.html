@@ -26,7 +26,7 @@
 {% endif %}
 
 <div class="row g-3 mb-4">
-  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Faturamento total" valor=indicadores.geral.valor|moeda icone="cash-stack" cor="primary" detalhe=indicadores.geral.quantidade|stringformat:"d"|add:" vendas no total" %}
+  {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Faturamento no ano" valor=indicadores.ano.valor|moeda icone="cash-stack" cor="primary" detalhe=indicadores.ano.quantidade|stringformat:"d"|add:" vendas de 01/01 até hoje" %}
   {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Ticket médio" valor=indicadores.geral.ticket_medio|moeda icone="receipt-cutoff" cor="dark" detalhe="valor médio por venda" %}
   {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Vendas do dia" valor=indicadores.dia.valor|moeda icone="sun" cor="warning" detalhe=indicadores.dia.quantidade|stringformat:"d"|add:" venda(s) hoje" %}
   {% include "dashboard/_card.html" with col="col-12 col-sm-6 col-xxl-3" titulo="Vendas do mês" valor=indicadores.mes.valor|moeda icone="calendar-check" cor="info" detalhe=indicadores.mes.quantidade|stringformat:"d"|add:" venda(s) no mês" %}
@@ -49,28 +49,22 @@
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-12 col-xl-8">
+  <div class="col-12">
     <div class="card shadow-sm h-100"><div class="card-body">
-      <h2 class="h6 card-title">Vendas por mês (últimos 12 meses)</h2>
-      <div class="grafico"><canvas id="graficoVendasMes"></canvas></div>
+      <h2 class="h6 card-title">Evolução das vendas (últimos 30 dias)</h2>
+      <div class="grafico"><canvas id="graficoVendasDia"></canvas></div>
     </div></div>
   </div>
-  <div class="col-12 col-md-6 col-xl-4">
+  <div class="col-12 col-md-6">
     <div class="card shadow-sm h-100"><div class="card-body">
       <h2 class="h6 card-title">Formas de pagamento mais utilizadas</h2>
       <div class="grafico"><canvas id="graficoFormaPagamento"></canvas></div>
     </div></div>
   </div>
-  <div class="col-12 col-md-6 col-xl-4">
+  <div class="col-12 col-md-6">
     <div class="card shadow-sm h-100"><div class="card-body">
       <h2 class="h6 card-title">Promissórias</h2>
       <div class="grafico"><canvas id="graficoPromissorias"></canvas></div>
-    </div></div>
-  </div>
-  <div class="col-12 col-xl-8">
-    <div class="card shadow-sm h-100"><div class="card-body">
-      <h2 class="h6 card-title">Evolução das vendas (últimos 30 dias)</h2>
-      <div class="grafico"><canvas id="graficoVendasDia"></canvas></div>
     </div></div>
   </div>
   <div class="col-12 col-xl-6">

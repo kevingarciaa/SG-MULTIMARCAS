@@ -8,7 +8,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum
-from django.db.models.functions import TruncDate, TruncMonth
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 
 from clientes.models import Cliente
@@ -16,19 +16,11 @@ from produtos.models import Produto
 from promissorias.models import Promissoria
 from vendas.models import ItemVenda, Venda
 
-MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+CORES = ["#0d6efd", "#198754", "#ffc107", "#dc3545", "#6f42c1", "#20c997", "#fd7e14"]
 
 
 def _soma(queryset, campo):
     return queryset.aggregate(total=Sum(campo))["total"] or Decimal("0")
-
-
-def _inicio_do_mes(data, meses_atras=0):
-    ano, mes = data.year, data.month - meses_atras
-    while mes <= 0:
-        mes += 12
-        ano -= 1
-    return data.replace(year=ano, month=mes, day=1)
 
 
 def resumo(vendas):
@@ -43,10 +35,11 @@ def resumo(vendas):
 
 
 def resumo_por_prazo(vendas):
-    """Resumo geral, do dia e do mês corrente."""
+    """Resumo geral, do ano até hoje, do dia e do mês corrente."""
     hoje = timezone.localdate()
     return {
         "geral": resumo(vendas),
+        "ano": resumo(vendas.filter(data_venda__date__gte=hoje.replace(month=1, day=1), data_venda__date__lte=hoje)),
         "dia": resumo(vendas.filter(data_venda__date=hoje)),
         "mes": resumo(vendas.filter(data_venda__date__gte=hoje.replace(day=1))),
     }
@@ -92,25 +85,6 @@ def indicadores_loja():
     }
 
 
-def vendas_por_mes(vendas, meses=12):
-    """Valor vendido em cada um dos últimos `meses` meses (inclui meses sem venda)."""
-    hoje = timezone.localdate()
-    inicio = _inicio_do_mes(hoje, meses - 1)
-    dados = {
-        item["mes"].date() if hasattr(item["mes"], "date") else item["mes"]: item["total"]
-        for item in vendas.filter(data_venda__date__gte=inicio)
-        .annotate(mes=TruncMonth("data_venda"))
-        .values("mes")
-        .annotate(total=Sum("valor_total"))
-    }
-    rotulos, valores = [], []
-    for i in range(meses - 1, -1, -1):
-        mes = _inicio_do_mes(hoje, i)
-        rotulos.append(f"{MESES[mes.month - 1]}/{mes:%y}")
-        valores.append(float(dados.get(mes, 0) or 0))
-    return {"rotulos": rotulos, "valores": valores}
-
-
 def vendas_por_dia(vendas, inicio, fim):
     """Valor vendido em cada dia entre `inicio` e `fim` (inclui dias sem venda)."""
     dados = {
@@ -148,14 +122,18 @@ def formas_pagamento(vendas):
             "quantidade": d["quantidade"],
             "valor": d["valor"] or Decimal("0"),
             "participacao": float((d["valor"] or 0) / total * 100) if total else 0.0,
+            "cor": CORES[i % len(CORES)],
         }
-        for d in dados
+        for i, d in enumerate(dados)
     ]
 
 
-def grafico_formas_pagamento(vendas):
-    linhas = formas_pagamento(vendas)
-    return {"rotulos": [l["nome"] for l in linhas], "valores": [float(l["valor"]) for l in linhas]}
+def grafico_formas_pagamento(formas):
+    return {
+        "rotulos": [f["nome"] for f in formas],
+        "valores": [float(f["valor"]) for f in formas],
+        "cores": [f["cor"] for f in formas],
+    }
 
 
 def promissorias_por_situacao():
@@ -186,25 +164,11 @@ def produtos_mais_vendidos(vendas, limite=5):
     ]
 
 
-def grafico_produtos(vendas, limite=5):
-    linhas = produtos_mais_vendidos(vendas, limite)
-    return {"rotulos": [l["nome"] for l in linhas], "valores": [l["quantidade"] for l in linhas]}
-
-
 def variacao(atual, anterior):
     """Variação percentual entre dois valores; None quando não há base de comparação."""
     if not anterior:
         return None
     return float((Decimal(atual) - Decimal(anterior)) / Decimal(anterior) * 100)
-
-
-def dias_maior_volume(vendas, limite=5):
-    return (
-        vendas.annotate(dia=TruncDate("data_venda"))
-        .values("dia")
-        .annotate(quantidade=Count("id"), valor=Sum("valor_total"))
-        .order_by("-valor")[:limite]
-    )
 
 
 def analise_periodo(periodo):
@@ -220,29 +184,20 @@ def analise_periodo(periodo):
     }
     evolucao_atual = vendas_por_dia(vendas, periodo.inicio, periodo.fim)
     evolucao_anterior = vendas_por_dia(vendas_anterior, anterior.inicio, anterior.fim)
-    vendedores = ranking_vendedores(vendas)
     formas = formas_pagamento(vendas)
-    produtos = produtos_mais_vendidos(vendas, limite=10)
 
     return {
         "anterior": anterior,
         "comparacao": comparacao,
-        "vendedores": vendedores,
         "formas": formas,
-        "produtos": produtos,
-        "dias_top": dias_maior_volume(vendas),
+        "produtos": produtos_mais_vendidos(vendas, limite=10),
         "graficos": {
             "evolucao": {
                 "rotulos": evolucao_atual["rotulos"],
                 "valores": evolucao_atual["valores"],
                 "anterior": evolucao_anterior["valores"],
             },
-            "vendedores": {
-                "rotulos": [l["nome"] for l in vendedores["linhas"]],
-                "valores": [float(l["valor"]) for l in vendedores["linhas"]],
-            },
-            "formaPagamento": {"rotulos": [f["nome"] for f in formas], "valores": [float(f["valor"]) for f in formas]},
-            "maisVendidos": {"rotulos": [p["nome"] for p in produtos], "valores": [p["quantidade"] for p in produtos]},
+            "formaPagamento": grafico_formas_pagamento(formas),
         },
     }
 
